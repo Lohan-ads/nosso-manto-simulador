@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulador de Tamanho — Nosso Manto Maringá</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #f0f4f1; min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; padding: 2rem 1rem; }
+    .wrap { width: 100%; max-width: 480px; }
+    .header { text-align: center; margin-bottom: 1.5rem; }
+    .header-brand { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #2d7a4f; margin-bottom: 6px; }
+    .header-title { font-size: 26px; font-weight: 700; color: #1a5c3a; margin-bottom: 10px; }
+    .header-divider { width: 32px; height: 3px; background: #f5a623; border-radius: 2px; margin: 0 auto 10px; }
+    .toggle { display: grid; grid-template-columns: 1fr 1fr; margin-bottom: 16px; border: 1.5px solid #1a5c3a; border-radius: 10px; overflow: hidden; }
+    .toggle-btn { padding: 13px; font-size: 14px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; cursor: pointer; border: none; background: #fff; color: #1a5c3a; transition: background 0.15s, color 0.15s; }
+    .toggle-btn.active { background: #1a5c3a; color: #fff; }
+    .toggle-btn:first-child { border-right: 1.5px solid #1a5c3a; }
+    .card { background: #fff; border-radius: 14px; border: 1px solid #c8ddd2; padding: 24px; margin-bottom: 16px; }
+    .hint { font-size: 12px; color: #5a7a6a; background: #f4f9f6; border-radius: 6px; padding: 8px 12px; margin-bottom: 14px; }
+    .inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+    .field label { display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #2d7a4f; margin-bottom: 7px; }
+    .field input { width: 100%; font-size: 22px; font-weight: 700; padding: 12px 14px; border: 1.5px solid #c8ddd2; border-radius: 8px; background: #fff; color: #1a5c3a; outline: none; transition: border-color 0.15s, box-shadow 0.15s; }
+    .field input:focus { border-color: #1a5c3a; box-shadow: 0 0 0 3px rgba(26,92,58,0.1); }
+    .field input::placeholder { color: #aac4b5; font-size: 16px; font-weight: 400; }
+    .btn { width: 100%; padding: 14px; font-size: 15px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; cursor: pointer; border-radius: 8px; border: none; background: #1a5c3a; color: #fff; transition: background 0.15s; }
+    .btn:hover { background: #14472d; }
+    .btn:active { transform: scale(0.98); }
+    .result-card { border-radius: 12px; overflow: hidden; border: 1.5px solid #c8ddd2; margin-bottom: 10px; }
+    .result-top { background: #1a5c3a; padding: 24px; display: flex; align-items: center; justify-content: space-between; }
+    .result-label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.6); margin-bottom: 4px; }
+    .result-size { font-size: 60px; font-weight: 700; color: #f5a623; line-height: 1; }
+    .result-right { text-align: right; }
+    .result-nums { font-size: 18px; font-weight: 700; color: #fff; }
+    .result-nums-label { font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 3px; }
+    .result-bottom { padding: 16px 20px; background: #f4f9f6; border-top: 1.5px solid #c8ddd2; }
+    .result-note { font-size: 14px; color: #2d5c40; line-height: 1.5; }
+    .alert { border-radius: 8px; padding: 12px 16px; border: 1.5px solid; margin-bottom: 10px; }
+    .alert-warn { background: #fff8ec; border-color: #f5a623; }
+    .alert-warn-title { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #b37a10; margin-bottom: 3px; }
+    .alert-warn-text { font-size: 13px; color: #7a520a; line-height: 1.5; }
+    .alert-err { background: #fff0f0; border-color: #e57373; }
+    .alert-err-text { font-size: 13px; color: #b52a2a; }
+    .alert-redirect { background: #eaf3ff; border-color: #6aabf5; }
+    .alert-redirect-title { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #1a5c99; margin-bottom: 3px; }
+    .alert-redirect-text { font-size: 13px; color: #1a4a7a; line-height: 1.5; }
+    .anchors-title { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #5a7a6a; margin-bottom: 8px; }
+    .anchors-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .anchor-item { background: #f4f9f6; border: 1px solid #c8ddd2; border-radius: 8px; padding: 9px 12px; display: flex; justify-content: space-between; align-items: center; }
+    .anchor-body { font-size: 12px; color: #3a6650; }
+    .anchor-tag { font-size: 13px; font-weight: 700; color: #1a5c3a; }
+    .footer { text-align: center; margin-top: 8px; font-size: 11px; color: #8aab97; }
+    @media (max-width: 400px) { .inputs { grid-template-columns: 1fr; } .anchors-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <div class="header-brand">Nosso Manto Maringá</div>
+    <div class="header-title">Simulador de tamanho</div>
+    <div class="header-divider"></div>
+  </div>
+
+  <div class="toggle">
+    <button class="toggle-btn active" id="btn-masc" onclick="setModo('masc')">Masculina</button>
+    <button class="toggle-btn" id="btn-fem" onclick="setModo('fem')">Feminina</button>
+  </div>
+
+  <div class="card">
+    <div id="inputs-masc">
+      <div class="inputs">
+        <div class="field"><label>Altura (cm)</label><input type="number" id="altura-masc" placeholder="175" min="150" max="215" inputmode="numeric" /></div>
+        <div class="field"><label>Peso (kg)</label><input type="number" id="peso-masc" placeholder="85" min="40" max="180" inputmode="numeric" /></div>
+      </div>
+    </div>
+    <div id="inputs-fem" style="display:none;">
+      <div class="hint">Baby look — corte justo. Se a cliente preferir mais folgado, subir um tamanho.</div>
+      <div class="inputs">
+        <div class="field"><label>Altura (cm)</label><input type="number" id="altura-fem" placeholder="163" min="140" max="185" inputmode="numeric" /></div>
+        <div class="field"><label>Peso (kg)</label><input type="number" id="peso-fem" placeholder="60" min="35" max="130" inputmode="numeric" /></div>
+      </div>
+    </div>
+    <button class="btn" onclick="calcular()">Calcular tamanho</button>
+  </div>
+
+  <div id="erro" style="display:none;" class="alert alert-err">
+    <div class="alert-err-text" id="erro-texto"></div>
+  </div>
+
+  <div id="resultado" style="display:none;">
+    <div class="result-card">
+      <div class="result-top">
+        <div>
+          <div class="result-label" id="result-label">Tamanho recomendado</div>
+          <div class="result-size" id="tamanho"></div>
+        </div>
+        <div class="result-right">
+          <div class="result-nums" id="perfil-nums"></div>
+          <div class="result-nums-label">altura / peso</div>
+        </div>
+      </div>
+      <div class="result-bottom">
+        <div class="result-note" id="aviso"></div>
+      </div>
+    </div>
+    <div id="limitrofe-box" style="display:none;" class="alert alert-warn">
+      <div class="alert-warn-title">Caso limítrofe</div>
+      <div class="alert-warn-text" id="limitrofe-texto"></div>
+    </div>
+    <div id="redirect-box" style="display:none;" class="alert alert-redirect">
+      <div class="alert-redirect-title">Indicar camisa masculina</div>
+      <div class="alert-redirect-text" id="redirect-texto"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="anchors-title" id="anchors-title">Referências validadas — masculina</div>
+    <div class="anchors-grid" id="anchors-grid">
+      <div class="anchor-item"><span class="anchor-body">até 62kg / até 170cm</span><span class="anchor-tag">P</span></div>
+      <div class="anchor-item"><span class="anchor-body">1,83m / 71kg</span><span class="anchor-tag">M</span></div>
+      <div class="anchor-item"><span class="anchor-body">1,75m / 85kg</span><span class="anchor-tag">G</span></div>
+      <div class="anchor-item"><span class="anchor-body">1,70m / 90kg</span><span class="anchor-tag">GG</span></div>
+      <div class="anchor-item"><span class="anchor-body">acima de 95kg</span><span class="anchor-tag">2GG</span></div>
+    </div>
+  </div>
+
+  <div class="footer">Uso interno — Nosso Manto Maringá</div>
+</div>
+
+<script>
+  let modo = 'masc';
+
+  function setModo(m) {
+    modo = m;
+    document.getElementById('btn-masc').classList.toggle('active', m === 'masc');
+    document.getElementById('btn-fem').classList.toggle('active', m === 'fem');
+    document.getElementById('inputs-masc').style.display = m === 'masc' ? 'block' : 'none';
+    document.getElementById('inputs-fem').style.display = m === 'fem' ? 'block' : 'none';
+    document.getElementById('resultado').style.display = 'none';
+    document.getElementById('erro').style.display = 'none';
+
+    if (m === 'masc') {
+      document.getElementById('anchors-title').textContent = 'Referências validadas — masculina';
+      document.getElementById('anchors-grid').innerHTML = `
+        <div class="anchor-item"><span class="anchor-body">até 62kg / até 170cm</span><span class="anchor-tag">P</span></div>
+        <div class="anchor-item"><span class="anchor-body">1,83m / 71kg</span><span class="anchor-tag">M</span></div>
+        <div class="anchor-item"><span class="anchor-body">1,75m / 85kg</span><span class="anchor-tag">G</span></div>
+        <div class="anchor-item"><span class="anchor-body">1,70m / 90kg</span><span class="anchor-tag">GG</span></div>
+        <div class="anchor-item"><span class="anchor-body">acima de 95kg</span><span class="anchor-tag">2GG</span></div>`;
+    } else {
+      document.getElementById('anchors-title').textContent = 'Referências validadas — feminina';
+      document.getElementById('anchors-grid').innerHTML = `
+        <div class="anchor-item"><span class="anchor-body">até 55kg</span><span class="anchor-tag">P</span></div>
+        <div class="anchor-item"><span class="anchor-body">1,70m / 70kg</span><span class="anchor-tag">M</span></div>
+        <div class="anchor-item"><span class="anchor-body">1,68m / 80kg</span><span class="anchor-tag">G</span></div>
+        <div class="anchor-item"><span class="anchor-body">72–82kg / 170–175cm</span><span class="anchor-tag">GG</span></div>
+        <div class="anchor-item"><span class="anchor-body">acima de 82kg</span><span class="anchor-tag">masculina</span></div>`;
+    }
+  }
+
+  function calcular() {
+    const erroDiv = document.getElementById('erro');
+    const resultadoDiv = document.getElementById('resultado');
+    const limitrofeDiv = document.getElementById('limitrofe-box');
+    const redirectDiv = document.getElementById('redirect-box');
+
+    erroDiv.style.display = 'none';
+    resultadoDiv.style.display = 'none';
+    limitrofeDiv.style.display = 'none';
+    redirectDiv.style.display = 'none';
+
+    const alturaId = modo === 'masc' ? 'altura-masc' : 'altura-fem';
+    const pesoId = modo === 'masc' ? 'peso-masc' : 'peso-fem';
+    const altura = parseFloat(document.getElementById(alturaId).value);
+    const peso = parseFloat(document.getElementById(pesoId).value);
+
+    if (isNaN(altura) || isNaN(peso)) {
+      document.getElementById('erro-texto').textContent = 'Preencha altura e peso para continuar.';
+      erroDiv.style.display = 'block';
+      return;
+    }
+
+    const r = modo === 'masc' ? getMasc(altura, peso) : getFem(altura, peso);
+
+    document.getElementById('tamanho').textContent = r.tamanho;
+    document.getElementById('aviso').textContent = r.aviso;
+    document.getElementById('perfil-nums').textContent = altura + 'cm / ' + peso + 'kg';
+    document.getElementById('result-label').textContent = modo === 'masc' ? 'Tamanho — masculina' : 'Tamanho — feminina';
+    resultadoDiv.style.display = 'block';
+
+    if (r.limitrofe) {
+      document.getElementById('limitrofe-texto').textContent = r.limitrofe;
+      limitrofeDiv.style.display = 'block';
+    }
+    if (r.redirect) {
+      document.getElementById('redirect-texto').textContent = r.redirect;
+      redirectDiv.style.display = 'block';
+    }
+  }
+
+  function getMasc(altura, peso) {
+    if (peso > 95) return { tamanho: '2GG', aviso: 'Acima de 95kg — 2GG direto, independente da altura.', limitrofe: null, redirect: null };
+    if (peso <= 62 && altura <= 170) return { tamanho: 'P', aviso: 'Perfil P: até 62kg e até 170cm.', limitrofe: peso >= 60 || altura >= 168 ? 'Próximo de M. Se preferir mais folgado, sugerir M.' : null, redirect: null };
+    if (peso <= 65 && altura >= 183) return { tamanho: 'M', aviso: 'Alto e magro — âncora validada (1,83m / 71kg). Altura não puxa o tamanho sem massa.', limitrofe: null, redirect: null };
+    if (peso <= 78) return { tamanho: 'M', aviso: 'Perfil médio. Peso é o fator principal.', limitrofe: peso >= 75 && altura >= 176 ? 'Próximo de G. Se for mais encorpado de ombros, sugerir G.' : null, redirect: null };
+    if (peso <= 90 && altura < 170) return { tamanho: 'GG', aviso: 'Biotipo mais largo para a altura.', limitrofe: peso <= 85 ? 'Pode servir G se for mais fechado de ombro.' : null, redirect: null };
+    if (peso <= 90) return { tamanho: 'G', aviso: 'Perfil padrão G — âncora validada (1,75m / 85kg).', limitrofe: peso >= 88 ? 'Próximo de GG. Se preferir mais folgado, sugerir GG.' : null, redirect: null };
+    return { tamanho: 'GG', aviso: 'Perfil GG — âncora validada (1,70m / 90kg).', limitrofe: peso >= 93 ? 'Próximo de 2GG. Se tiver torso mais largo, sugerir 2GG.' : null, redirect: null };
+  }
+
+  function getFem(altura, peso) {
+    if (peso > 82) {
+      return { tamanho: 'Masc', aviso: 'Peso acima do limite da feminina. Indicar camisa masculina.', limitrofe: null, redirect: 'Baby look não comporta esse perfil. Mudar para o modo masculino e simular lá.' };
+    }
+    if (peso <= 55) {
+      return { tamanho: 'P', aviso: 'Peso leve — P. Baby look ficará ajustado.', limitrofe: peso >= 53 ? 'Próximo de M. Se preferir mais folgado, sugerir M.' : null, redirect: null };
+    }
+    if (peso <= 70) {
+      return {
+        tamanho: 'M',
+        aviso: altura >= 168 ? 'Alta e com peso leve — âncora validada (1,70m / 70kg = M). Peso prevalece sobre a altura.' : 'Perfil M — peso define o tamanho nessa faixa.',
+        limitrofe: peso >= 67 ? 'Próximo de G. Se preferir mais folgado, sugerir G.' : null,
+        redirect: null
+      };
+    }
+    if (peso <= 82) {
+      if (altura <= 170) {
+        return { tamanho: 'G', aviso: 'Perfil G — âncora validada (1,68m / 80kg = G).', limitrofe: peso >= 78 ? 'Próximo de GG. Se preferir mais folgado, sugerir GG.' : null, redirect: null };
+      }
+      return { tamanho: 'GG', aviso: 'Altura e peso no teto da feminina — GG. Maior tamanho disponível.', limitrofe: peso >= 79 ? 'Próximo do limite. Se acima de 82kg, indicar masculina.' : null, redirect: null };
+    }
+    return { tamanho: 'GG', aviso: 'Limite máximo da feminina.', limitrofe: 'Confirmar com a cliente.', redirect: null };
+  }
+
+  ['altura-masc','peso-masc','altura-fem','peso-fem'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') calcular(); });
+  });
+</script>
+</body>
+</html>
